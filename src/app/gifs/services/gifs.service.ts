@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams, JsonpClientBackend } from '@angular/common/http';
+import { Gif, SearchGifsResponse } from '../interface/gifs.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -7,16 +8,23 @@ import { HttpClient } from '@angular/common/http';
 export class GifsService {
 
   private apiKey: string = "mbLJsSDhtAmc2IurIrfmr3Chlcne47us";
+  private servicioUrl: string = "https://api.giphy.com/v1/gifs";
   private _historial: string[] = [];
 
   // TODO: Cambiar any por el tipo correspondiente
-  public resultados: any[] = [];
+  public resultados: Gif[] = [];
 
   get historial() {
     return [...this._historial];
   }
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    this._historial = JSON.parse(localStorage.getItem('historial')!) || [];
+    this.resultados = JSON.parse(localStorage.getItem('resultado')!) || [];
+    // if(localStorage.getItem('historial')){
+    //   this._historial=JSON.parse(localStorage.getItem('historial')!);
+    // }
+  }
 
   buscarGifs(query: string) {
     query = query.trim().toLowerCase();
@@ -24,13 +32,21 @@ export class GifsService {
     if (!this._historial.includes(query)) {
       this._historial.unshift(query);
       this._historial = this._historial.splice(0, 10);
+
+      localStorage.setItem('historial', JSON.stringify(this._historial));
     }
 
-    let url: string = `https://api.giphy.com/v1/gifs/search?api_key=mbLJsSDhtAmc2IurIrfmr3Chlcne47us&q=${query}&limit=10`;
-    this.http.get(url)
-      .subscribe((resp: any) => {
-        console.log(resp.data);
+    const params = new HttpParams()
+      .set('api_key', this.apiKey)
+      .set('limit', '10')
+      .set('q', query);
+
+    console.log(params.toString());
+
+    this.http.get<SearchGifsResponse>(`${this.servicioUrl}/search`, { params })
+      .subscribe((resp) => {
         this.resultados = resp.data;
-      })
+        localStorage.setItem('resultado', JSON.stringify(this.resultados));
+      });
   }
 }

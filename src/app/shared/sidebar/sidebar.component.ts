@@ -7,12 +7,17 @@ import { GifsService } from '../../gifs/services/gifs.service';
   styleUrls: ['./sidebar.component.css']
 })
 export class SidebarComponent {
-   
 
-  get historial(){
-    return this.srv.historial;    
+
+  get historial() {
+    return this.srv.historial;
   }
-  
-  constructor(private srv:GifsService) { }
+
+  constructor(private srv: GifsService) { }
+
+  buscar(keyword: string) {
+    this.srv.buscarGifs(keyword);
+    console.log(keyword);
+  }
 
 }
